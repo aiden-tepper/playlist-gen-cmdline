@@ -1,6 +1,7 @@
 {
   "name": "playlist-gen-cmdline",
   "version": "1.0.0",
+  "type": "module",
   "description": "Command-line interface to explore LLM-powered semantic music playlist generation",
   "main": "index.js",
   "scripts": {
@@ -8,5 +9,9 @@
   },
   "keywords": [],
   "author": "",
-  "license": "ISC"
+  "license": "ISC",
+  "dependencies": {
+    "dotenv": "^16.4.1",
+    "node-fetch": "^3.3.2"
+  }
 }
