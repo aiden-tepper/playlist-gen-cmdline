@@ -48,29 +48,32 @@ app.get('/callback', async (req, res) => {
         };
 
         try {
-            const response = await fetch('https://accounts.spotify.com/api/token', {
+            const tokenResponse = await fetch('https://accounts.spotify.com/api/token', {
                 method: 'POST',
                 headers: headers,
                 body: params
             });
-            const data = await response.json();
+            const tokenData = await tokenResponse.json();
 
-            if (response.ok) {
-                // Redirect or handle the tokens as needed
-                res.redirect('/#' +
-                    new URLSearchParams({
-                        access_token: data.access_token,
-                        refresh_token: data.refresh_token
-                    }).toString());
+            if (tokenResponse.ok) {
+                // Use the access token to access the Spotify Web API
+                const playlistsResponse = await fetch('https://api.spotify.com/v1/me/playlists', {
+                    headers: { 'Authorization': `Bearer ${tokenData.access_token}` }
+                });
+                const playlistsData = await playlistsResponse.json();
+
+                // Assuming you want to output the playlist names in a simple text list
+                let playlistsText = playlistsData.items.map(playlist => playlist.name).join('\n');
+                res.send(`<pre>${playlistsText}</pre>`);
             } else {
-                // Handle errors, e.g., display a message or redirect
+                // Handle errors, e.g., invalid token
                 res.redirect('/#' +
                     new URLSearchParams({
                         error: 'invalid_token'
                     }).toString());
             }
         } catch (error) {
-            console.error('Error during token exchange:', error);
+            console.error('Error during API request:', error);
             res.redirect('/#' +
                 new URLSearchParams({
                     error: 'internal_server_error'
@@ -78,6 +81,7 @@ app.get('/callback', async (req, res) => {
         }
     }
 });
+
 
 app.listen(port, () => {
     console.log(`Example app listening at http://localhost:${port}`);
