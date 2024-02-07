@@ -1,8 +1,5 @@
 import requests
-from dotenv import load_dotenv
 import os
-
-load_dotenv()
 
 client_id = os.environ.get('SPOTIFY_CLIENT_ID')
 print(client_id)
@@ -23,4 +20,13 @@ def get_access_token():
     response = requests.post(url, headers=headers, data=data)
     print(response.json())
 
-get_access_token()
+def query_api():
+    url = "https://api.spotify.com/v1/me/playlists"
+    headers = {
+        "Authorization": "Bearer " + access_token
+    }
+
+    response = requests.post(url, headers=headers, data=data)
+    print(response.json())
+
+query_api()
