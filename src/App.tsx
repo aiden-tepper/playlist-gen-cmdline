@@ -34,9 +34,10 @@ function App() {
   };
 
   const authEndpoint = "https://accounts.spotify.com/authorize";
-  const redirectUri = "https://spotify-visuals-generator.vercel.app";
+  // const redirectUri = "https://spotify-visuals-generator.vercel.app";
+  const redirectUri = "http://localhost:3000";
   const client_id = process.env.SPOTIFY_CLIENT_ID;
-  // const client_secret = process.env.REACT_APP_SPOTIFY_CLIENT_SECRET;
+  const client_secret = process.env.REACT_APP_SPOTIFY_CLIENT_SECRET;
   const scopes = ["user-read-recently-played"];
 
   const loginUrl = `${authEndpoint}?client_id=${client_id}&redirect_uri=${redirectUri}&scope=${scopes.join(
@@ -45,71 +46,85 @@ function App() {
 
   const getRecents = async () => {
     const token = window.localStorage.getItem("token");
+    console.log("[" + token + "]");
     if (!token) {
+      console.log("No Spotify token found in getRecents()");
       return;
     }
-    const response = await fetch("https://api.spotify.com/v1/me/player/recently-played", {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    const responseJson: RecentlyPlayedResponse = await response.json();
 
-    const entries: string[] = responseJson.items.map((item) => {
-      const track = item.track;
-      const artistNames = track.artists.map((artist) => artist.name).join(", ");
-      return `${track.name} by ${artistNames}`;
-    });
+    try {
+      const response = await fetch("https://api.spotify.com/v1/me/player/recently-played", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      console.log("responseJson: ", response.body);
+      const responseJson: RecentlyPlayedResponse = await response.json();
 
-    return entries;
+      const entries: string[] = responseJson.items.map((item) => {
+        const track = item.track;
+        const artistNames = track.artists.map((artist) => artist.name).join(", ");
+        return `${track.name} by ${artistNames}`;
+      });
+
+      return entries;
+    } catch (e) {
+      console.error("Error in getRecents:", e);
+      return null;
+    }
   };
 
   const getDescriptors = async (newRecents: string[]) => {
-    const prompt = `Generate 6 adjectives that describe the color, physical texture, taste, smell, vibe, and style of the sum of the following songs: "${newRecents.join(
-      '", "'
-    )}." Return only the six adjectives in JSON format like so: { descriptors: ["color", "physical texture", "taste", "smell", "vibe", "style"]}`;
-
-    const response = await fetch(
-      "https://api-inference.huggingface.co/models/mistralai/Mixtral-8x7B-Instruct-v0.1",
-      {
-        headers: {
-          Authorization: `Bearer ${process.env.HF_TOKEN}`,
-          "Content-Type": "application/json",
-        },
-        method: "POST",
-        body: JSON.stringify({ inputs: prompt }),
-      }
-    );
-    const result = await response.json();
-
-    const resultString = result[0].generated_text;
-    console.log("resultString: ", resultString);
-    const jsonString = resultString.match(/\[(.*?)\]/g)[1];
-
     try {
+      const prompt = `Generate 6 adjectives that describe the color, physical texture, taste, smell, vibe, and style of the sum of the following songs: "${newRecents.join(
+        '", "'
+      )}." Return only the six adjectives in JSON format like so: { descriptors: ["color", "physical texture", "taste", "smell", "vibe", "style"]}`;
+
+      const response = await fetch(
+        "https://api-inference.huggingface.co/models/mistralai/Mixtral-8x7B-Instruct-v0.1",
+        {
+          headers: {
+            Authorization: `Bearer ${process.env.HF_TOKEN}`,
+            "Content-Type": "application/json",
+          },
+          method: "POST",
+          body: JSON.stringify({ inputs: prompt }),
+        }
+      );
+      const result = await response.json();
+
+      const resultString = result[0].generated_text;
+      console.log("resultString: ", resultString);
+      const jsonString = resultString.match(/\[(.*?)\]/g)[1];
+
       const adjectivesArray = JSON.parse(jsonString);
       return adjectivesArray;
     } catch (e) {
-      console.error("Failed to parse JSON:", e);
+      console.error("Error in getDescriptors:", e);
       return null;
     }
   };
 
   const getImageUrl = async (descriptors: string[]) => {
-    const prompt =
-      "Generate an image of an abstract scene that embodies the following adjectives: " +
-      descriptors.join(", ") +
-      ".";
+    try {
+      const prompt =
+        "Generate an image of an abstract scene that embodies the following adjectives: " +
+        descriptors.join(", ") +
+        ".";
 
-    const response = await fetch(
-      "https://api-inference.huggingface.co/models/runwayml/stable-diffusion-v1-5",
-      {
-        headers: { Authorization: `Bearer ${process.env.HF_TOKEN}` },
-        method: "POST",
-        body: JSON.stringify({ inputs: prompt }),
-      }
-    );
-    const blob = await response.blob();
+      const response = await fetch(
+        "https://api-inference.huggingface.co/models/runwayml/stable-diffusion-v1-5",
+        {
+          headers: { Authorization: `Bearer ${process.env.HF_TOKEN}` },
+          method: "POST",
+          body: JSON.stringify({ inputs: prompt }),
+        }
+      );
+      const blob = await response.blob();
 
-    return URL.createObjectURL(blob);
+      return URL.createObjectURL(blob);
+    } catch (e) {
+      console.error("Error in getImageUrl:", e);
+      return null;
+    }
   };
 
   const refresh = async () => {
