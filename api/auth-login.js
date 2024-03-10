@@ -18,7 +18,7 @@ export default function (req, res) {
     response_type: "code",
     client_id: process.env.SPOTIFY_CLIENT_ID,
     scope: scope,
-    redirect_uri: "api/auth-callback",
+    redirect_uri: "/api/auth-callback",
     state: state,
   });
 
