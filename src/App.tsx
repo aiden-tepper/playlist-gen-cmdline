@@ -1,117 +1,10 @@
 import "./styles.css";
 import { useEffect, useState } from "react";
-import { Button, Link } from "@nextui-org/react";
-// import fetch, { Response as FetchResponse } from "node-fetch";
+import { Button, Link, Image } from "@nextui-org/react";
 
 function App() {
-  //   import dotenv from "dotenv";
-  // import express, { Request, Response } from "express";
-  // import { URLSearchParams } from "url";
-
-  // dotenv.config();
-
-  // const client_id: string = process.env.SPOTIFY_CLIENT_ID || "";
-  // const client_secret: string = process.env.SPOTIFY_CLIENT_SECRET || "";
-  // const redirect_uri: string = "http://localhost:3000/callback";
-  // const port: number = 3000;
-
-  // const app = express();
-
-  // app.get("/login", (req: Request, res: Response) => {
-  //   const state: string = generateRandomString(16);
-  //   const scope: string = "user-read-recently-played";
-
-  //   res.redirect(
-  //     "https://accounts.spotify.com/authorize?" +
-  //       new URLSearchParams({
-  //         response_type: "code",
-  //         client_id: client_id,
-  //         scope: scope,
-  //         redirect_uri: redirect_uri,
-  //         state: state,
-  //       }).toString()
-  //   );
-  // });
-
-  // app.get("/callback", async (req: Request, res: Response) => {
-  //   const code: string | null = req.query.code || null;
-  //   const state: string | null = req.query.state || null;
-
-  //   if (state === null) {
-  //     res.redirect(
-  //       "/#" +
-  //         new URLSearchParams({
-  //           error: "state_mismatch",
-  //         }).toString()
-  //     );
-  //   } else {
-  //     const params = new URLSearchParams({
-  //       code: code || "",
-  //       redirect_uri: redirect_uri,
-  //       grant_type: "authorization_code",
-  //     });
-
-  //     const headers = {
-  //       "Content-Type": "application/x-www-form-urlencoded",
-  //       Authorization: "Basic " + Buffer.from(`${client_id}:${client_secret}`).toString("base64"),
-  //     };
-
-  //     try {
-  //       const tokenResponse: FetchResponse = await fetch("https://accounts.spotify.com/api/token", {
-  //         method: "POST",
-  //         headers: headers,
-  //         body: params,
-  //       });
-  //       const tokenData = await tokenResponse.json();
-
-  //       if (tokenResponse.ok) {
-  //         // Use the access token to access the Spotify Web API
-  //         const spotifyResponse: FetchResponse = await fetch(
-  //           "https://api.spotify.com/v1/me/player/recently-played",
-  //           {
-  //             headers: { Authorization: `Bearer ${(tokenData as any).access_token}` },
-  //           }
-  //         );
-  //         const playlistsData: { items: any[] } = (await spotifyResponse.json()) as { items: any[] };
-
-  //         // Assuming you want to output the playlist names in a simple text list
-  //         let playlistsText: string = playlistsData.items.map((track: any) => track.json).join("\n");
-  //         res.send(`<pre>${playlistsText}</pre>`);
-  //       } else {
-  //         // Handle errors, e.g., invalid token
-  //         res.redirect(
-  //           "/#" +
-  //             new URLSearchParams({
-  //               error: "invalid_token",
-  //             }).toString()
-  //         );
-  //       }
-  //     } catch (error) {
-  //       console.error("Error during API request:", error);
-  //       res.redirect(
-  //         "/#" +
-  //           new URLSearchParams({
-  //             error: "internal_server_error",
-  //           }).toString()
-  //       );
-  //     }
-  //   }
-  // });
-
-  // app.listen(port, () => {
-  //   console.log(`Example app listening at http://localhost:${port}`);
-  // });
-
-  // const generateRandomString = (length: number): string => {
-  //   let text: string = "";
-  //   const possible: string = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-
-  //   for (let i = 0; i < length; i++) {
-  //     text += possible.charAt(Math.floor(Math.random() * possible.length));
-  //   }
-  //   return text;
-  // };
   const [token, setToken] = useState("");
+  const [imageUrl, setImageUrl] = useState("");
 
   useEffect(() => {
     const hash = window.location.hash;
@@ -173,7 +66,62 @@ function App() {
       '", "'
     )}." Return only the six adjectives in this form: ["color", "physical texture", "taste", "smell", "vibe", "style"]`;
 
-    console.log(prompt);
+    console.log("text prompt: " + prompt);
+    return prompt;
+  };
+
+  const descriptorGen = async () => {
+    const prompt = await tracks();
+
+    const response = await fetch(
+      "https://api-inference.huggingface.co/models/mistralai/Mixtral-8x7B-Instruct-v0.1",
+      {
+        headers: {
+          Authorization: `Bearer ${process.env.HF_TOKEN}`,
+          "Content-Type": "application/json",
+        },
+        method: "POST",
+        body: JSON.stringify({ inputs: prompt }),
+      }
+    );
+    const result = await response.json();
+
+    const resultString = result[0].generated_text;
+    const jsonString = resultString.match(/\[(.*?)\]/g)[1];
+
+    try {
+      const adjectivesArray = JSON.parse(jsonString);
+      console.log("descriptors: " + adjectivesArray);
+      return adjectivesArray;
+    } catch (e) {
+      console.error("Failed to parse JSON:", e);
+      return null;
+    }
+  };
+
+  const imageGen = async () => {
+    const descriptors = await descriptorGen();
+    const prompt =
+      "Generate an image of an abstract scene that embodies the following adjectives: " +
+      descriptors.join(", ") +
+      ".";
+    console.log("image prompt: " + prompt);
+
+    const response = await fetch(
+      "https://api-inference.huggingface.co/models/runwayml/stable-diffusion-v1-5",
+      {
+        headers: { Authorization: `Bearer ${process.env.HF_TOKEN}` },
+        method: "POST",
+        body: JSON.stringify({ inputs: prompt }),
+      }
+    );
+    const blob = await response.blob();
+    console.log(blob);
+
+    const imageUrl = URL.createObjectURL(blob);
+    setImageUrl(imageUrl);
+
+    return imageUrl;
   };
 
   return (
@@ -188,9 +136,10 @@ function App() {
           <Button onClick={logout} color="warning" variant="solid">
             Log out
           </Button>
-          <Button onClick={tracks} color="primary" variant="solid">
+          <Button onClick={imageGen} color="primary" variant="solid">
             Get Recently Played
           </Button>
+          <Image src={imageUrl} alt="Generated" style={{ maxWidth: "100%", height: "auto" }} />
         </>
       )}
     </>
