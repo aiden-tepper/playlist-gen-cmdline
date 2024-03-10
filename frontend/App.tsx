@@ -31,22 +31,11 @@ function App() {
   const logout = () => {
     setToken("");
     window.localStorage.removeItem("token");
+    window.location.href = "/";
   };
-
-  const authEndpoint = "https://accounts.spotify.com/authorize";
-  // const redirectUri = "https://spotify-visuals-generator.vercel.app";
-  const redirectUri = "http://localhost:3000";
-  const client_id = process.env.SPOTIFY_CLIENT_ID;
-  const client_secret = process.env.REACT_APP_SPOTIFY_CLIENT_SECRET;
-  const scopes = ["user-read-recently-played"];
-
-  const loginUrl = `${authEndpoint}?client_id=${client_id}&redirect_uri=${redirectUri}&scope=${scopes.join(
-    "%20"
-  )}&response_type=token&show_dialog=true`;
 
   const getRecents = async () => {
     const token = window.localStorage.getItem("token");
-    console.log("[" + token + "]");
     if (!token) {
       console.log("No Spotify token found in getRecents()");
       return;
@@ -128,7 +117,12 @@ function App() {
   };
 
   const refresh = async () => {
-    setRecents([]); // Initialize recents as an empty array
+    if (!token) {
+      console.log("No token available for refreshing data.");
+      return;
+    }
+
+    setRecents([]);
     setDescriptors([]);
     setImageUrl("");
 

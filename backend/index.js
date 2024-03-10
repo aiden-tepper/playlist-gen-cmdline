@@ -57,7 +57,7 @@ app.get("/auth/callback", async (req, res) => {
     const data = await response.json();
 
     // Redirecting to the frontend with the access token
-    res.redirect(`${process.env.FRONTEND_URI}/#${data.access_token}`);
+    res.redirect(`${process.env.FRONTEND_URI}/#access_token=${data.access_token}`);
   } catch (error) {
     console.error("Error fetching access token", error);
     res.status(500).send("Internal Server Error");
