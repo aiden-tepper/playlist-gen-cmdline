@@ -1,6 +1,6 @@
 import "./styles.css";
 import { useEffect, useState } from "react";
-import { Button, Link, Image } from "@nextui-org/react";
+import { Button, Link, Image, Divider } from "@nextui-org/react";
 
 function App() {
   const [token, setToken] = useState("");
@@ -125,24 +125,80 @@ function App() {
   };
 
   return (
-    <>
-      <h1>my app</h1>
+    <div
+      style={{
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
+        height: "90vh",
+        gap: "2rem", // Add vertical space between elements
+      }}
+    >
       {!token ? (
-        <Button href={loginUrl} as={Link} color="primary" showAnchorIcon variant="solid">
-          Log in with Spotify
-        </Button>
+        <>
+          <h1 style={{ textAlign: "center", fontSize: "3rem", marginBottom: "3rem" }}>
+            Spotify Visuals Generator!
+          </h1>
+          <div className="flex h-5 items-center space-x-4 text-small">
+            <h2
+              style={{
+                textAlign: "center",
+                fontSize: "2rem",
+                marginBottom: "2rem",
+                marginTop: "1rem",
+                lineHeight: "2rem",
+              }}
+            >
+              <i>Generate cool visualizations based on your recent listening history</i>
+            </h2>
+            <Divider orientation="vertical" style={{ height: "8vh" }} />
+            <h2
+              style={{
+                textAlign: "center",
+                fontSize: "2rem",
+                marginBottom: "2rem",
+                marginTop: "1rem",
+                lineHeight: "2rem",
+              }}
+            >
+              <i>Log in with your Spotify account and let me handle the rest!</i>
+            </h2>
+          </div>
+          <p style={{ textAlign: "justify", fontSize: "1rem", marginBottom: "1rem", marginTop: "1rem" }}>
+            Abstract images are created from your recently played songs on a rolling basis. Variations are
+            generated on each image, then frame interpolation is used to create a smooth transition between
+            each variation. This visualization is looped for a period of time, then your recently played music
+            is reassessed and we seamlessly transition to the next visualization. The result is a neverending,
+            captivating visual experience that reflects the energy and essence of your music choices, acting
+            as a stunning computer screensaver, background visuals casted to your TV, or the backdrop for any
+            scenario you can think of that could use a vibe boost!
+          </p>
+          <Button href={loginUrl} as={Link} color="primary" showAnchorIcon variant="solid">
+            Log in with Spotify
+          </Button>
+        </>
       ) : (
         <>
-          <Button onClick={logout} color="warning" variant="solid">
+          {/* <Button onClick={logout} color="warning" variant="solid">
             Log out
-          </Button>
+          </Button> */}
           <Button onClick={imageGen} color="primary" variant="solid">
             Get Recently Played
           </Button>
-          <Image src={imageUrl} alt="Generated" style={{ maxWidth: "100%", height: "auto" }} />
+          <Image
+            src={imageUrl}
+            alt="Generated"
+            style={{ maxWidth: "100%", height: "auto", marginTop: "1rem" }}
+          />
         </>
       )}
-    </>
+      <footer
+        style={{ position: "fixed", bottom: 0, left: 0, right: 0, textAlign: "center", fontSize: "1.5rem" }}
+      >
+        made by aiden tepper
+      </footer>
+    </div>
   );
 }
 
