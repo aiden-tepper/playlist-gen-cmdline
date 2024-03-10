@@ -34,7 +34,7 @@ function App() {
   };
 
   const authEndpoint = "https://accounts.spotify.com/authorize";
-  const redirectUri = "http://localhost:3000";
+  const redirectUri = "https://spotify-visuals-generator.vercel.app";
   const client_id = process.env.SPOTIFY_CLIENT_ID;
   // const client_secret = process.env.REACT_APP_SPOTIFY_CLIENT_SECRET;
   const scopes = ["user-read-recently-played"];
