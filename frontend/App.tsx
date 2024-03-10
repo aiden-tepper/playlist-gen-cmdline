@@ -42,7 +42,7 @@ function App() {
     }
 
     try {
-      const response = await fetch(`${process.env.RECENTLY_PLAYED_URI}`, {
+      const response = await fetch("/api/recently-played", {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (!response.ok) {
@@ -202,13 +202,7 @@ function App() {
               choices, acting as a stunning computer screensaver, background visuals casted to your TV, or the
               backdrop for any scenario you can think of that could use a vibe boost!
             </p>
-            <Button
-              href={`${process.env.LOGIN_URI}`}
-              as={Link}
-              color="primary"
-              showAnchorIcon
-              variant="solid"
-            >
+            <Button href={"/api/auth-login"} as={Link} color="primary" showAnchorIcon variant="solid">
               Log in with Spotify
             </Button>
           </div>
