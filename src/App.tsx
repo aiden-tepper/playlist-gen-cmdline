@@ -1,10 +1,11 @@
 import "./styles.css";
 import { useEffect, useState } from "react";
-import { Button, Link, Image, Divider } from "@nextui-org/react";
+import { Button, Link, Image, Divider, CircularProgress } from "@nextui-org/react";
 
 function App() {
   const [token, setToken] = useState("");
   const [imageUrl, setImageUrl] = useState("");
+  const [recents, setRecents] = useState(null);
 
   useEffect(() => {
     const hash = window.location.hash;
@@ -100,6 +101,7 @@ function App() {
   };
 
   const imageGen = async () => {
+    setRecents(null);
     const descriptors = await descriptorGen();
     const prompt =
       "Generate an image of an abstract scene that embodies the following adjectives: " +
@@ -124,73 +126,130 @@ function App() {
     return imageUrl;
   };
 
+  useEffect(() => {
+    if (token) {
+      getRecentlyPlayed().then((data) => {
+        const entries: string[] = [];
+        data.items.forEach((item: any, idx: number) => {
+          const track = item.track;
+          const artistNames = track.artists.map((artist) => artist.name).join(", ");
+          const entry = `${track.name} by ${artistNames}`;
+          entries.push(entry);
+        });
+        setRecents(entries);
+      });
+    }
+  }, [token]);
+
   return (
-    <div
-      style={{
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        justifyContent: "center",
-        height: "90vh",
-        gap: "2rem", // Add vertical space between elements
-      }}
-    >
+    <>
       {!token ? (
         <>
-          <h1 style={{ textAlign: "center", fontSize: "3rem", marginBottom: "3rem" }}>
-            Spotify Visuals Generator!
-          </h1>
-          <div className="flex h-5 items-center space-x-4 text-small">
-            <h2
-              style={{
-                textAlign: "center",
-                fontSize: "2rem",
-                marginBottom: "2rem",
-                marginTop: "1rem",
-                lineHeight: "2rem",
-              }}
-            >
-              <i>Generate cool visualizations based on your recent listening history</i>
-            </h2>
-            <Divider orientation="vertical" style={{ height: "8vh" }} />
-            <h2
-              style={{
-                textAlign: "center",
-                fontSize: "2rem",
-                marginBottom: "2rem",
-                marginTop: "1rem",
-                lineHeight: "2rem",
-              }}
-            >
-              <i>Log in with your Spotify account and let me handle the rest!</i>
-            </h2>
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              justifyContent: "center",
+              height: "90vh",
+              gap: "2rem", // Add vertical space between elements
+            }}
+          >
+            <h1 style={{ textAlign: "center", fontSize: "3rem", marginBottom: "3rem" }}>
+              Spotify Visuals Generator!
+            </h1>
+            <div className="flex h-5 items-center space-x-4 text-small">
+              <h2
+                style={{
+                  textAlign: "center",
+                  fontSize: "2rem",
+                  marginBottom: "2rem",
+                  marginTop: "1rem",
+                  lineHeight: "2rem",
+                }}
+              >
+                <i>Generate cool visualizations based on your recent listening history</i>
+              </h2>
+              <Divider orientation="vertical" style={{ height: "8vh" }} />
+              <h2
+                style={{
+                  textAlign: "center",
+                  fontSize: "2rem",
+                  marginBottom: "2rem",
+                  marginTop: "1rem",
+                  lineHeight: "2rem",
+                }}
+              >
+                <i>Log in with your Spotify account and let me handle the rest!</i>
+              </h2>
+            </div>
+            <p style={{ textAlign: "justify", fontSize: "1rem", marginBottom: "1rem", marginTop: "1rem" }}>
+              Abstract images are created from your recently played songs on a rolling basis. Variations are
+              generated on each image, then frame interpolation is used to create a smooth transition between
+              each variation. This visualization is looped for a period of time, then your recently played
+              music is reassessed and we seamlessly transition to the next visualization. The result is a
+              neverending, captivating visual experience that reflects the energy and essence of your music
+              choices, acting as a stunning computer screensaver, background visuals casted to your TV, or the
+              backdrop for any scenario you can think of that could use a vibe boost!
+            </p>
+            <Button href={loginUrl} as={Link} color="primary" showAnchorIcon variant="solid">
+              Log in with Spotify
+            </Button>
           </div>
-          <p style={{ textAlign: "justify", fontSize: "1rem", marginBottom: "1rem", marginTop: "1rem" }}>
-            Abstract images are created from your recently played songs on a rolling basis. Variations are
-            generated on each image, then frame interpolation is used to create a smooth transition between
-            each variation. This visualization is looped for a period of time, then your recently played music
-            is reassessed and we seamlessly transition to the next visualization. The result is a neverending,
-            captivating visual experience that reflects the energy and essence of your music choices, acting
-            as a stunning computer screensaver, background visuals casted to your TV, or the backdrop for any
-            scenario you can think of that could use a vibe boost!
-          </p>
-          <Button href={loginUrl} as={Link} color="primary" showAnchorIcon variant="solid">
-            Log in with Spotify
-          </Button>
         </>
       ) : (
         <>
-          {/* <Button onClick={logout} color="warning" variant="solid">
-            Log out
-          </Button> */}
-          <Button onClick={imageGen} color="primary" variant="solid">
-            Get Recently Played
-          </Button>
-          <Image
-            src={imageUrl}
-            alt="Generated"
-            style={{ maxWidth: "100%", height: "auto", marginTop: "1rem" }}
-          />
+          <div className="flex flex-col h-full">
+            <header className="flex justify-between items-center p-4">
+              <Button
+                onClick={logout}
+                color="warning"
+                variant="solid"
+                className="py-2 px-4 font-bold rounded"
+              >
+                Log out
+              </Button>
+              <Button
+                onClick={imageGen}
+                color="primary"
+                variant="solid"
+                className="py-2 px-4 font-bold rounded"
+              >
+                Refresh
+              </Button>
+            </header>
+
+            <main className="flex-grow">
+              <div className="flex divide-x divide-gray-300 h-full">
+                <div className="w-1/3 flex flex-col">
+                  <h2 className="text-lg font-semibold text-center mt-4">Recently played songs</h2>
+                  <div className="flex-grow flex items-center justify-center">
+                    <ol className="text-left">
+                      {recents ? (
+                        recents.map((item: string) => <li>{item}</li>)
+                      ) : (
+                        <CircularProgress aria-label="Loading..." />
+                      )}
+                    </ol>
+                  </div>
+                </div>
+
+                <div className="w-1/3 flex flex-col">
+                  <h2 className="text-lg font-semibold text-center mt-4">Generated descriptors</h2>
+                  <div className="flex-grow flex items-center justify-center">
+                    <p>descriptors</p>
+                  </div>
+                </div>
+
+                <div className="w-1/3 flex flex-col">
+                  <h2 className="text-lg font-semibold text-center mt-4">Generated image</h2>
+                  <div className="flex-grow flex items-center justify-center">
+                    <Image src={imageUrl} alt="Generated" className="max-w-full h-auto" />
+                  </div>
+                </div>
+              </div>
+            </main>
+          </div>
         </>
       )}
       <footer
@@ -198,7 +257,7 @@ function App() {
       >
         made by aiden tepper
       </footer>
-    </div>
+    </>
   );
 }
 

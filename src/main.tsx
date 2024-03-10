@@ -6,7 +6,7 @@ import App from "./App.tsx";
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
     <NextUIProvider>
-      <div className="w-screen h-screen p-8 flex items-start justify-center box-border overflow-auto">
+      <div className="w-screen h-screen p-8 items-start justify-center box-border overflow-hidden">
         <App />
       </div>
     </NextUIProvider>
