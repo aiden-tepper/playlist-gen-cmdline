@@ -20,6 +20,6 @@
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true
   },
-  "include": ["src", "postcss.config.js"],
+  "include": ["frontend", "postcss.config.js", "frontend/App.tsx", "frontend/main.tsx", "frontend/types.ts", "frontend/vite-env.d.ts"],
   "references": [{ "path": "./tsconfig.node.json" }]
 }

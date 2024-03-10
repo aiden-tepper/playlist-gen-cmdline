@@ -1,17 +1,26 @@
 {
-  "name": "playlist-gen-cmdline",
+  "name": "spotify-visuals-generator",
   "private": true,
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
-    "build": "tsc && vite build",
-    "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
-    "preview": "vite preview"
+    "dev:frontend": "vite --config frontend/vite.config.js",
+    "build:frontend": "tsc && vite build --config frontend/vite.config.js",
+    "preview:frontend": "vite preview --config frontend/vite.config.js",
+    "lint": "eslint ./frontend --ext .ts,.tsx --report-unused-disable-directives --max-warnings 0",
+    "dev:backend": "nodemon backend/index.js",
+    "start:backend": "node backend/index.js",
+    "dev": "concurrently \"npm run dev:frontend\" \"npm run dev:backend\"",
+    "build": "npm run build:frontend && tsc --project backend",
+    "start": "npm run build && concurrently \"npm run start:backend\" \"npm run preview:frontend\""
   },
   "dependencies": {
     "@nextui-org/react": "^2.2.10",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.18.3",
     "framer-motion": "^11.0.8",
+    "node-fetch": "^3.3.2",
     "react": "^18.2.0",
     "react-dom": "^18.2.0"
   },
@@ -23,9 +32,11 @@
     "@typescript-eslint/parser": "^7.0.2",
     "@vitejs/plugin-react": "^4.2.1",
     "autoprefixer": "^10.4.18",
+    "concurrently": "^8.2.2",
     "eslint": "^8.56.0",
     "eslint-plugin-react-hooks": "^4.6.0",
     "eslint-plugin-react-refresh": "^0.4.5",
+    "nodemon": "^3.1.0",
     "postcss": "^8.4.35",
     "tailwindcss": "^3.4.1",
     "typescript": "^5.2.2",

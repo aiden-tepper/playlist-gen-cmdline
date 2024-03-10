@@ -207,7 +207,13 @@ function App() {
               choices, acting as a stunning computer screensaver, background visuals casted to your TV, or the
               backdrop for any scenario you can think of that could use a vibe boost!
             </p>
-            <Button href={loginUrl} as={Link} color="primary" showAnchorIcon variant="solid">
+            <Button
+              href={"http://localhost:3001/auth/login"}
+              as={Link}
+              color="primary"
+              showAnchorIcon
+              variant="solid"
+            >
               Log in with Spotify
             </Button>
           </div>
