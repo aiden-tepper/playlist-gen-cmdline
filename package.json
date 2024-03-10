@@ -11,7 +11,7 @@
     "dev:backend": "nodemon backend/index.js",
     "start:backend": "node backend/index.js",
     "dev": "concurrently \"npm run dev:frontend\" \"npm run dev:backend\"",
-    "build": "npm run build:frontend && tsc --project backend",
+    "build": "npm run build:frontend && tsc",
     "start": "npm run build && concurrently \"npm run start:backend\" \"npm run preview:frontend\""
   },
   "dependencies": {
