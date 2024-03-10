@@ -18,7 +18,7 @@ export default function (req, res) {
     response_type: "code",
     client_id: process.env.SPOTIFY_CLIENT_ID,
     scope: scope,
-    redirect_uri: "http://localhost:3000/api/auth-callback",
+    redirect_uri: "https://spotify-visuals-generator.vercel.app/api/auth-callback",
     state: state,
   });
 
