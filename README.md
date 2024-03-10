@@ -16,6 +16,8 @@ This webapp was built using Vite and React, with NextUI for components and Tailw
 
 As of now, text generation is provided by Mistral AI's `Mixtral-8x7B-Instruct-v0.1` model, and text-to-image generation is provided by RunwayML's `stable-diffusion-v1-5` model. These models are accessed via Hugging Face's Inference API, allowing a serverless interface for fast prototyping.
 
+*At the moment, use of Spotify's API requires me to manually authorize your email address.*
+
 ## Further reading
 
 [text generation model](https://huggingface.co/mistralai/Mixtral-8x7B-Instruct-v0.1)
