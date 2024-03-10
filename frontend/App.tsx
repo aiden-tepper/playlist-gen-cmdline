@@ -42,13 +42,15 @@ function App() {
     }
 
     try {
-      const response = await fetch("https://api.spotify.com/v1/me/player/recently-played", {
+      const response = await fetch("http://localhost:3001/api/recently-played", {
         headers: { Authorization: `Bearer ${token}` },
       });
-      console.log("responseJson: ", response.body);
-      const responseJson: RecentlyPlayedResponse = await response.json();
+      if (!response.ok) {
+        throw new Error(`Failed to fetch recently played: ${response.statusText}`);
+      }
+      const responseJson = await response.json();
 
-      const entries: string[] = responseJson.items.map((item) => {
+      const entries = responseJson.items.map((item) => {
         const track = item.track;
         const artistNames = track.artists.map((artist) => artist.name).join(", ");
         return `${track.name} by ${artistNames}`;
@@ -82,7 +84,7 @@ function App() {
 
       const resultString = result[0].generated_text;
       console.log("resultString: ", resultString);
-      const jsonString = resultString.match(/\[(.*?)\]/g)[1];
+      const jsonString = resultString.match(/\[(.*?)\]/)?.[0];
 
       const adjectivesArray = JSON.parse(jsonString);
       return adjectivesArray;
