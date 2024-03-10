@@ -48,7 +48,7 @@ function App() {
       if (!response.ok) {
         throw new Error(`Failed to fetch recently played: ${response.statusText}`);
       }
-      const responseJson = await response.json();
+      const responseJson: RecentlyPlayedResponse = await response.json();
 
       const entries = responseJson.items.map((item) => {
         const track = item.track;
@@ -134,7 +134,7 @@ function App() {
     setDescriptors(newDescriptors);
 
     const imageUrl = await getImageUrl(newDescriptors);
-    setImageUrl(imageUrl);
+    setImageUrl(imageUrl || ""); // Provide a default value of an empty string
   };
 
   useEffect(() => {
