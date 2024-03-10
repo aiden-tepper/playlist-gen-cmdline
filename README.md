@@ -1,30 +1,20 @@
-# React + TypeScript + Vite
+# Spotify Visuals Generator
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+*Generate cool visualizations based on your recent listening history!*
+*Log in with your Spotify account and let me handle the rest!*
 
-Currently, two official plugins are available:
+Abstract images are created from your recently played songs on a rolling basis. Variations are generated on each image, then frame interpolation is used to create a smooth transition between each variation. This visualization is looped for a period of time, then your recently played music is reassessed and we seamlessly transition to the next visualization. The result is a neverending, captivating visual experience that reflects the energy and essence of your music choices, acting as a stunning computer screensaver, background visuals casted to your TV, or the backdrop for any scenario you can think of that could use a vibe boost!
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+Note that this is very much a work in progress, and completion of the full vision as outlined above may require waiting for technology to catch up.
 
-## Expanding the ESLint configuration
+## Internals
 
-If you are developing a production application, we recommend updating the configuration to enable type aware lint rules:
+This webapp was built using Vite and React, with NextUI for components and Tailwind CSS for making flexbox more complicated than it needs to be.
 
-- Configure the top-level `parserOptions` property like this:
+As of now, text generation is provided by Mistral AI's `Mixtral-8x7B-Instruct-v0.1` model, and text-to-image generation is provided by RunwayML's `stable-diffusion-v1-5` model. These models are accessed via Hugging Face's Inference API, allowing a serverless interface for fast prototyping.
 
-```js
-export default {
-  // other rules...
-  parserOptions: {
-    ecmaVersion: 'latest',
-    sourceType: 'module',
-    project: ['./tsconfig.json', './tsconfig.node.json'],
-    tsconfigRootDir: __dirname,
-  },
-}
-```
+## Further reading
 
-- Replace `plugin:@typescript-eslint/recommended` to `plugin:@typescript-eslint/recommended-type-checked` or `plugin:@typescript-eslint/strict-type-checked`
-- Optionally add `plugin:@typescript-eslint/stylistic-type-checked`
-- Install [eslint-plugin-react](https://github.com/jsx-eslint/eslint-plugin-react) and add `plugin:react/recommended` & `plugin:react/jsx-runtime` to the `extends` list
+[text generation model](https://huggingface.co/mistralai/Mixtral-8x7B-Instruct-v0.1)
+[text-to-image generation model](https://huggingface.co/runwayml/stable-diffusion-v1-5)
+[Hugging Face Inference API reference](https://huggingface.co/docs/api-inference/index)
