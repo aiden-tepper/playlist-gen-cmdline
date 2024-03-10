@@ -14,42 +14,50 @@ const port = process.env.PORT || 3001; // Backend runs on a different port
 
 app.get("/auth/login", (req, res) => {
   const scope = "user-read-recently-played";
-  res.redirect(
-    `https://accounts.spotify.com/authorize?client_id=${
-      process.env.SPOTIFY_CLIENT_ID
-    }&response_type=code&redirect_uri=${encodeURIComponent(
-      process.env.REDIRECT_URI
-    )}&scope=${encodeURIComponent(scope)}&show_dialog=true`
-  );
+  const state = generateRandomString(16);
+
+  const auth_query_parameters = new URLSearchParams({
+    response_type: "code",
+    client_id: process.env.SPOTIFY_CLIENT_ID,
+    scope: scope,
+    redirect_uri: process.env.REDIRECT_URI,
+    state: state,
+  });
+
+  res.redirect("https://accounts.spotify.com/authorize/?" + auth_query_parameters.toString());
 });
 
 app.get("/auth/callback", async (req, res) => {
   const code = req.query.code || null;
-  const authOptions = {
-    method: "post",
-    url: "https://accounts.spotify.com/api/token",
-    data: new URLSearchParams({
-      code: code,
-      redirect_uri: process.env.REDIRECT_URI,
-      grant_type: "authorization_code",
-    }),
-    headers: {
-      Authorization: `Basic ${Buffer.from(
-        `${process.env.SPOTIFY_CLIENT_ID}:${process.env.SPOTIFY_CLIENT_SECRET}`
-      ).toString("base64")}`,
-      "Content-Type": "application/x-www-form-urlencoded",
-    },
-  };
+
+  const params = new URLSearchParams({
+    code: code,
+    redirect_uri: process.env.REDIRECT_URI,
+    grant_type: "authorization_code",
+  });
+
+  const basicAuth = Buffer.from(
+    `${process.env.SPOTIFY_CLIENT_ID}:${process.env.SPOTIFY_CLIENT_SECRET}`
+  ).toString("base64");
 
   try {
-    const response = await fetch("https://accounts.spotify.com/api/token", authOptions);
-    const data = await response.json();
-    if (response.ok) {
-      // Redirecting to the frontend with the access token
-      res.redirect(`${process.env.FRONTEND_URI}/#${data.access_token}`);
-    } else {
-      throw new Error(`Failed to fetch token: ${data.error}`);
+    const response = await fetch("https://accounts.spotify.com/api/token", {
+      method: "POST",
+      headers: {
+        Authorization: `Basic ${basicAuth}`,
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
+      body: params,
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
     }
+
+    const data = await response.json();
+
+    // Redirecting to the frontend with the access token
+    res.redirect(`${process.env.FRONTEND_URI}/#${data.access_token}`);
   } catch (error) {
     console.error("Error fetching access token", error);
     res.status(500).send("Internal Server Error");
@@ -59,3 +67,13 @@ app.get("/auth/callback", async (req, res) => {
 app.listen(port, () => {
   console.log(`Listening on port ${port}`);
 });
+
+var generateRandomString = function (length) {
+  var text = "";
+  var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+
+  for (var i = 0; i < length; i++) {
+    text += possible.charAt(Math.floor(Math.random() * possible.length));
+  }
+  return text;
+};
