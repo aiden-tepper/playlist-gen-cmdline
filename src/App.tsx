@@ -1,7 +1,5 @@
-import { useState } from "react";
-import reactLogo from "./assets/react.svg";
-import viteLogo from "/vite.svg";
 import "./styles.css";
+import { useEffect, useState } from "react";
 import { Button, Link } from "@nextui-org/react";
 
 function App() {
@@ -113,12 +111,36 @@ function App() {
   //   }
   //   return text;
   // };
+  const [token, setToken] = useState("");
+
+  useEffect(() => {
+    const hash = window.location.hash;
+    let token = window.localStorage.getItem("token");
+
+    if (!token && hash) {
+      token = (
+        hash
+          .substring(1)
+          .split("&")
+          .find((elem) => elem.startsWith("access_token")) || ""
+      ).split("=")[1];
+
+      window.location.hash = "";
+      window.localStorage.setItem("token", token);
+    }
+
+    setToken(token || ""); // Provide a default value of an empty string if token is null
+  }, []);
+
+  const logout = () => {
+    setToken("");
+    window.localStorage.removeItem("token");
+  };
 
   const authEndpoint = "https://accounts.spotify.com/authorize";
   const redirectUri = "http://localhost:3000";
-  const client_id: string = process.env.SPOTIFY_CLIENT_ID || "";
-  console.log(client_id);
-  // const client_secret: string = process.env.SPOTIFY_CLIENT_SECRET || "";
+  const client_id = process.env.SPOTIFY_CLIENT_ID;
+  // const client_secret = process.env.REACT_APP_SPOTIFY_CLIENT_SECRET;
   const scopes = ["user-read-recently-played"];
 
   const loginUrl = `${authEndpoint}?client_id=${client_id}&redirect_uri=${redirectUri}&scope=${scopes.join(
@@ -127,9 +149,16 @@ function App() {
 
   return (
     <>
-      <Button href={loginUrl} as={Link} color="primary" showAnchorIcon variant="solid">
-        Log in with Spotify
-      </Button>
+      <h1>my app</h1>
+      {!token ? (
+        <Button href={loginUrl} as={Link} color="primary" showAnchorIcon variant="solid">
+          Log in with Spotify
+        </Button>
+      ) : (
+        <Button onClick={logout} color="warning" variant="solid">
+          Log out
+        </Button>
+      )}
     </>
   );
 }
