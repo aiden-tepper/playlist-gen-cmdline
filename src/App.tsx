@@ -1,11 +1,11 @@
 import "./styles.css";
 import { useEffect, useState } from "react";
 import { Button, Link } from "@nextui-org/react";
+// import fetch, { Response as FetchResponse } from "node-fetch";
 
 function App() {
   //   import dotenv from "dotenv";
   // import express, { Request, Response } from "express";
-  // import fetch, { Response as FetchResponse } from "node-fetch";
   // import { URLSearchParams } from "url";
 
   // dotenv.config();
@@ -147,6 +147,35 @@ function App() {
     "%20"
   )}&response_type=token&show_dialog=true`;
 
+  const getRecentlyPlayed = async () => {
+    const token = window.localStorage.getItem("token");
+    if (!token) {
+      return;
+    }
+    const response = await fetch("https://api.spotify.com/v1/me/player/recently-played", {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    return await response.json();
+  };
+
+  const tracks = async () => {
+    const history = await getRecentlyPlayed();
+
+    const entries: string[] = [];
+    history.items.forEach((item: any, idx: number) => {
+      const track = item.track;
+      const artistNames = track.artists.map((artist) => artist.name).join(", ");
+      const entry = `${track.name} by ${artistNames}`;
+      entries.push(entry);
+    });
+
+    const prompt = `Generate 6 adjectives that describe the color, physical texture, taste, smell, vibe, and style of the sum of the following songs: "${entries.join(
+      '", "'
+    )}." Return only the six adjectives in this form: ["color", "physical texture", "taste", "smell", "vibe", "style"]`;
+
+    console.log(prompt);
+  };
+
   return (
     <>
       <h1>my app</h1>
@@ -155,9 +184,14 @@ function App() {
           Log in with Spotify
         </Button>
       ) : (
-        <Button onClick={logout} color="warning" variant="solid">
-          Log out
-        </Button>
+        <>
+          <Button onClick={logout} color="warning" variant="solid">
+            Log out
+          </Button>
+          <Button onClick={tracks} color="primary" variant="solid">
+            Get Recently Played
+          </Button>
+        </>
       )}
     </>
   );
