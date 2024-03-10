@@ -1,12 +1,13 @@
 import "./styles.css";
 import { useEffect, useState } from "react";
 import { Button, Link, Image, Divider, CircularProgress } from "@nextui-org/react";
+import { RecentlyPlayedResponse } from "./types";
 
 function App() {
   const [token, setToken] = useState("");
   const [imageUrl, setImageUrl] = useState("");
-  const [recents, setRecents] = useState("");
-  const [descriptors, setDescriptors] = useState("");
+  const [recents, setRecents] = useState<string[]>([]);
+  const [descriptors, setDescriptors] = useState<string[]>([]);
 
   useEffect(() => {
     const hash = window.location.hash;
@@ -50,20 +51,18 @@ function App() {
     const response = await fetch("https://api.spotify.com/v1/me/player/recently-played", {
       headers: { Authorization: `Bearer ${token}` },
     });
-    const responseJson = await response.json();
+    const responseJson: RecentlyPlayedResponse = await response.json();
 
-    const entries: string[] = [];
-    responseJson.items.forEach((item: any, idx: number) => {
+    const entries: string[] = responseJson.items.map((item) => {
       const track = item.track;
       const artistNames = track.artists.map((artist) => artist.name).join(", ");
-      const entry = `${track.name} by ${artistNames}`;
-      entries.push(entry);
+      return `${track.name} by ${artistNames}`;
     });
 
     return entries;
   };
 
-  const getDescriptors = async (newRecents: []) => {
+  const getDescriptors = async (newRecents: string[]) => {
     const prompt = `Generate 6 adjectives that describe the color, physical texture, taste, smell, vibe, and style of the sum of the following songs: "${newRecents.join(
       '", "'
     )}." Return only the six adjectives in JSON format like so: { descriptors: ["color", "physical texture", "taste", "smell", "vibe", "style"]}`;
@@ -94,7 +93,7 @@ function App() {
     }
   };
 
-  const getImageUrl = async (descriptors: []) => {
+  const getImageUrl = async (descriptors: string[]) => {
     const prompt =
       "Generate an image of an abstract scene that embodies the following adjectives: " +
       descriptors.join(", ") +
@@ -114,20 +113,25 @@ function App() {
   };
 
   const refresh = async () => {
-    setRecents("");
-    setDescriptors("");
+    setRecents([]); // Initialize recents as an empty array
+    setDescriptors([]);
     setImageUrl("");
 
-    const newRecents = await getRecents();
-    console.log("newRecents: ", newRecents);
+    const newRecents = (await getRecents()) || [];
     setRecents(newRecents);
 
-    const newDescriptors = await getDescriptors(newRecents);
+    const newDescriptors = (await getDescriptors(newRecents)) || [];
     setDescriptors(newDescriptors);
 
     const imageUrl = await getImageUrl(newDescriptors);
     setImageUrl(imageUrl);
   };
+
+  useEffect(() => {
+    if (token) {
+      refresh();
+    }
+  }, [token]);
 
   return (
     <>
@@ -213,7 +217,7 @@ function App() {
                   <h2 className="text-lg font-semibold text-center mt-4">Recently played songs</h2>
                   <div className="flex-grow flex items-center justify-center">
                     <ol className="text-left">
-                      {recents ? (
+                      {recents[0] ? (
                         recents.map((item: string, index: number) => (
                           <li className="p-1" key={index}>{`${index + 1}. ${item}`}</li>
                         ))
@@ -228,7 +232,7 @@ function App() {
                   <h2 className="text-lg font-semibold text-center mt-4">Generated descriptors</h2>
                   <div className="flex-grow flex items-center justify-center">
                     <ol className="text-left">
-                      {descriptors ? (
+                      {descriptors[0] ? (
                         descriptors.map((item: string, index: number) => (
                           <li className="p-1" key={index}>{`${index + 1}. ${item}`}</li>
                         ))
