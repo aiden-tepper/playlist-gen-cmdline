@@ -9,6 +9,9 @@ function App() {
   const [recents, setRecents] = useState<string[]>([]);
   const [descriptors, setDescriptors] = useState<string[]>([]);
 
+  // const model = "https://api-inference.huggingface.co/models/google/gemma-7b-it";
+  const model = "https://api-inference.huggingface.co/models/mistralai/Mixtral-8x7B-Instruct-v0.1";
+
   useEffect(() => {
     const hash = window.location.hash;
     let token = window.localStorage.getItem("token");
@@ -67,23 +70,22 @@ function App() {
     try {
       const prompt = `Generate 6 adjectives that describe the color, physical texture, taste, smell, vibe, and style of the sum of the following songs: "${newRecents.join(
         '", "'
-      )}." Return only the six adjectives in JSON format like so: { descriptors: ["color", "physical texture", "taste", "smell", "vibe", "style"]}`;
+      )}." You don't have to listen to the songs, just infer. Return only the six adjectives in the following format, including the braces and the quotes: ["color", "physical texture", "taste", "smell", "vibe", "style"]. Replace each of those six elements with the corresponding descriptor you assigned.`;
 
-      const response = await fetch(
-        "https://api-inference.huggingface.co/models/mistralai/Mixtral-8x7B-Instruct-v0.1",
-        {
-          headers: {
-            Authorization: `Bearer ${process.env.HF_TOKEN}`,
-            "Content-Type": "application/json",
-          },
-          method: "POST",
-          body: JSON.stringify({ inputs: prompt }),
-        }
-      );
+      const response = await fetch(model, {
+        headers: {
+          Authorization: `Bearer ${import.meta.env.VITE_HF_TOKEN}`,
+          "Content-Type": "application/json",
+        },
+        method: "POST",
+        body: JSON.stringify({ inputs: prompt }),
+      });
       const result = await response.json();
 
+      const regex = /\["[^"]*",\s*"[^"]*",\s*"[^"]*",\s*"[^"]*",\s*"[^"]*",\s*"[^"]*"\]/g;
       const resultString = result[0].generated_text;
-      const jsonString = resultString.match(/\[(.*?)\]/)?.[0];
+      console.log("Result string:", resultString);
+      const jsonString = resultString.match(regex)[1];
 
       const adjectivesArray = JSON.parse(jsonString);
       return adjectivesArray;
@@ -103,7 +105,7 @@ function App() {
       const response = await fetch(
         "https://api-inference.huggingface.co/models/runwayml/stable-diffusion-v1-5",
         {
-          headers: { Authorization: `Bearer ${process.env.HF_TOKEN}` },
+          headers: { Authorization: `Bearer ${import.meta.env.VITE_HF_TOKEN}` },
           method: "POST",
           body: JSON.stringify({ inputs: prompt }),
         }

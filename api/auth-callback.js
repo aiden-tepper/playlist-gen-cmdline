@@ -6,7 +6,7 @@ export default async function (req, res) {
   const code = req.query.code || null;
   const params = new URLSearchParams({
     code: code,
-    redirect_uri: "/api/auth-callback",
+    redirect_uri: "http://localhost:3000/api/auth-callback",
     grant_type: "authorization_code",
   });
 
