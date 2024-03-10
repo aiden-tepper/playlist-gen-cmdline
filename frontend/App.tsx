@@ -78,7 +78,7 @@ function App() {
           "Content-Type": "application/json",
         },
         method: "POST",
-        body: JSON.stringify({ inputs: prompt }),
+        body: JSON.stringify({ inputs: prompt, options: { use_cache: false } }),
       });
       const result = await response.json();
 
