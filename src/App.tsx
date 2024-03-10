@@ -5,7 +5,8 @@ import { Button, Link, Image, Divider, CircularProgress } from "@nextui-org/reac
 function App() {
   const [token, setToken] = useState("");
   const [imageUrl, setImageUrl] = useState("");
-  const [recents, setRecents] = useState(null);
+  const [recents, setRecents] = useState("");
+  const [descriptors, setDescriptors] = useState("");
 
   useEffect(() => {
     const hash = window.location.hash;
@@ -41,7 +42,7 @@ function App() {
     "%20"
   )}&response_type=token&show_dialog=true`;
 
-  const getRecentlyPlayed = async () => {
+  const getRecents = async () => {
     const token = window.localStorage.getItem("token");
     if (!token) {
       return;
@@ -49,30 +50,23 @@ function App() {
     const response = await fetch("https://api.spotify.com/v1/me/player/recently-played", {
       headers: { Authorization: `Bearer ${token}` },
     });
-    return await response.json();
-  };
-
-  const tracks = async () => {
-    const history = await getRecentlyPlayed();
+    const responseJson = await response.json();
 
     const entries: string[] = [];
-    history.items.forEach((item: any, idx: number) => {
+    responseJson.items.forEach((item: any, idx: number) => {
       const track = item.track;
       const artistNames = track.artists.map((artist) => artist.name).join(", ");
       const entry = `${track.name} by ${artistNames}`;
       entries.push(entry);
     });
 
-    const prompt = `Generate 6 adjectives that describe the color, physical texture, taste, smell, vibe, and style of the sum of the following songs: "${entries.join(
-      '", "'
-    )}." Return only the six adjectives in this form: ["color", "physical texture", "taste", "smell", "vibe", "style"]`;
-
-    console.log("text prompt: " + prompt);
-    return prompt;
+    return entries;
   };
 
-  const descriptorGen = async () => {
-    const prompt = await tracks();
+  const getDescriptors = async (newRecents: []) => {
+    const prompt = `Generate 6 adjectives that describe the color, physical texture, taste, smell, vibe, and style of the sum of the following songs: "${newRecents.join(
+      '", "'
+    )}." Return only the six adjectives in JSON format like so: { descriptors: ["color", "physical texture", "taste", "smell", "vibe", "style"]}`;
 
     const response = await fetch(
       "https://api-inference.huggingface.co/models/mistralai/Mixtral-8x7B-Instruct-v0.1",
@@ -88,11 +82,11 @@ function App() {
     const result = await response.json();
 
     const resultString = result[0].generated_text;
+    console.log("resultString: ", resultString);
     const jsonString = resultString.match(/\[(.*?)\]/g)[1];
 
     try {
       const adjectivesArray = JSON.parse(jsonString);
-      console.log("descriptors: " + adjectivesArray);
       return adjectivesArray;
     } catch (e) {
       console.error("Failed to parse JSON:", e);
@@ -100,14 +94,11 @@ function App() {
     }
   };
 
-  const imageGen = async () => {
-    setRecents(null);
-    const descriptors = await descriptorGen();
+  const getImageUrl = async (descriptors: []) => {
     const prompt =
       "Generate an image of an abstract scene that embodies the following adjectives: " +
       descriptors.join(", ") +
       ".";
-    console.log("image prompt: " + prompt);
 
     const response = await fetch(
       "https://api-inference.huggingface.co/models/runwayml/stable-diffusion-v1-5",
@@ -118,28 +109,25 @@ function App() {
       }
     );
     const blob = await response.blob();
-    console.log(blob);
 
-    const imageUrl = URL.createObjectURL(blob);
-    setImageUrl(imageUrl);
-
-    return imageUrl;
+    return URL.createObjectURL(blob);
   };
 
-  useEffect(() => {
-    if (token) {
-      getRecentlyPlayed().then((data) => {
-        const entries: string[] = [];
-        data.items.forEach((item: any, idx: number) => {
-          const track = item.track;
-          const artistNames = track.artists.map((artist) => artist.name).join(", ");
-          const entry = `${track.name} by ${artistNames}`;
-          entries.push(entry);
-        });
-        setRecents(entries);
-      });
-    }
-  }, [token]);
+  const refresh = async () => {
+    setRecents("");
+    setDescriptors("");
+    setImageUrl("");
+
+    const newRecents = await getRecents();
+    console.log("newRecents: ", newRecents);
+    setRecents(newRecents);
+
+    const newDescriptors = await getDescriptors(newRecents);
+    setDescriptors(newDescriptors);
+
+    const imageUrl = await getImageUrl(newDescriptors);
+    setImageUrl(imageUrl);
+  };
 
   return (
     <>
@@ -210,7 +198,7 @@ function App() {
                 Log out
               </Button>
               <Button
-                onClick={imageGen}
+                onClick={refresh}
                 color="primary"
                 variant="solid"
                 className="py-2 px-4 font-bold rounded"
@@ -226,7 +214,9 @@ function App() {
                   <div className="flex-grow flex items-center justify-center">
                     <ol className="text-left">
                       {recents ? (
-                        recents.map((item: string) => <li>{item}</li>)
+                        recents.map((item: string, index: number) => (
+                          <li className="p-1" key={index}>{`${index + 1}. ${item}`}</li>
+                        ))
                       ) : (
                         <CircularProgress aria-label="Loading..." />
                       )}
@@ -237,14 +227,28 @@ function App() {
                 <div className="w-1/3 flex flex-col">
                   <h2 className="text-lg font-semibold text-center mt-4">Generated descriptors</h2>
                   <div className="flex-grow flex items-center justify-center">
-                    <p>descriptors</p>
+                    <ol className="text-left">
+                      {descriptors ? (
+                        descriptors.map((item: string, index: number) => (
+                          <li className="p-1" key={index}>{`${index + 1}. ${item}`}</li>
+                        ))
+                      ) : (
+                        <CircularProgress aria-label="Loading..." />
+                      )}
+                    </ol>
                   </div>
                 </div>
 
                 <div className="w-1/3 flex flex-col">
                   <h2 className="text-lg font-semibold text-center mt-4">Generated image</h2>
                   <div className="flex-grow flex items-center justify-center">
-                    <Image src={imageUrl} alt="Generated" className="max-w-full h-auto" />
+                    <ol className="text-left">
+                      {imageUrl ? (
+                        <Image src={imageUrl} alt="Generated" className="max-w-full h-auto" />
+                      ) : (
+                        <CircularProgress aria-label="Loading..." />
+                      )}
+                    </ol>
                   </div>
                 </div>
               </div>
