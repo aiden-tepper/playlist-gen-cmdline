@@ -42,7 +42,7 @@ function App() {
     }
 
     try {
-      const response = await fetch("http://localhost:3001/api/recently-played", {
+      const response = await fetch(`${process.env.RECENTLY_PLAYED_URI}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (!response.ok) {
@@ -83,7 +83,6 @@ function App() {
       const result = await response.json();
 
       const resultString = result[0].generated_text;
-      console.log("resultString: ", resultString);
       const jsonString = resultString.match(/\[(.*?)\]/)?.[0];
 
       const adjectivesArray = JSON.parse(jsonString);
@@ -204,7 +203,7 @@ function App() {
               backdrop for any scenario you can think of that could use a vibe boost!
             </p>
             <Button
-              href={"http://localhost:3001/auth/login"}
+              href={`${process.env.LOGIN_URI}`}
               as={Link}
               color="primary"
               showAnchorIcon

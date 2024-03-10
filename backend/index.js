@@ -66,7 +66,6 @@ app.get("/auth/callback", async (req, res) => {
 
 app.get("/api/recently-played", async (req, res) => {
   const token = req.headers.authorization;
-  console.log(token);
   if (!token) {
     return res.status(401).json({ error: "No token provided" });
   }
