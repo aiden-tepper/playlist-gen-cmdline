@@ -150,7 +150,7 @@ function App() {
             <h1 style={{ textAlign: "center", fontSize: "3rem", marginBottom: "3rem" }}>
               Spotify Visuals Generator!
             </h1>
-            <div className="flex h-5 items-center space-x-4 text-small">
+            <div className="flex h-5 items-center space-x-4 text-small w-2/3">
               <h2
                 style={{
                   textAlign: "center",
@@ -175,7 +175,15 @@ function App() {
                 <i>Log in with your Spotify account and let me handle the rest!</i>
               </h2>
             </div>
-            <p style={{ textAlign: "justify", fontSize: "1rem", marginBottom: "1rem", marginTop: "1rem" }}>
+            <p
+              style={{
+                textAlign: "justify",
+                fontSize: "1rem",
+                marginBottom: "1rem",
+                marginTop: "3rem",
+                width: "70%",
+              }}
+            >
               Abstract images are created from your recently played songs on a rolling basis. Variations are
               generated on each image, then frame interpolation is used to create a smooth transition between
               each variation. This visualization is looped for a period of time, then your recently played
